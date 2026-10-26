@@ -1,0 +1,78 @@
+# Flow: Service Request SR tab — Pump Technician profile
+# Env: Odoo 17 @ http://localhost:8069 / DB: dev_hrp
+# Login: trace_test_user / TraceTest@2026
+#
+# Creates a new fsm.order, switches Technician Profile to Pump (confirms
+# Check Sheet tab disappears), fills the header + Service Request SR fields,
+# adds one Pump equipment line and fills all of its columns.
+
+fill input#login trace_test_user
+fill input#password TraceTest@2026
+press Enter
+wait 6000
+
+goto http://localhost:8069/web#action=1168&model=fsm.order&view_type=list&cids=1
+wait 8000
+jclick button.o_list_button_add
+wait 4000
+
+# --- Switch profile to Pump Technician ---
+eval (function(){var s=document.querySelector('[name="technician_profile"] select'); s.value='"pump"'; s.dispatchEvent(new Event('change', {bubbles:true})); return s.value;})()
+wait 1500
+screenshot 02-profile-pump
+eval Array.from(document.querySelectorAll('.o_notebook_headers .nav-link')).map(e => e.textContent.trim())
+
+# --- Header ---
+m2o [name="location_id"] บ้าน อ้าอ้า
+wait 1000
+m2o [name="person_id"] กิต
+wait 1000
+
+# --- Service Request SR tab (already active by default) ---
+m2o [name="sale_id"] HP-2026
+wait 1000
+fill '[name="customer_po"] input' PO-TRACE-0002
+fill '[name="job_no"] input' JOB-TRACE-0002
+
+fill '[name="sr_planned_date"] input' 22/07/2026
+press Escape
+fill '[name="sr_completion_date"] input' 23/07/2026
+press Escape
+
+click [name="customer_type"] input[data-value="end_user"]
+click [name="sr_priority"] input[data-value="urgent"]
+
+click [name="reason_external_leakage"] input
+click [name="reason_preventive_maintenance"] input
+
+click [name="scope_onsite_service"] input
+click [name="scope_service_report_required"] input
+screenshot 02-sr-header-fields
+
+# --- Equipment Line - Pump Technician (custom table, add 1 row) ---
+jclick [name="pump_line_ids"] button.btn-link
+wait 1000
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(2) input' PUMP-TRACE-01
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(3) input' Grundfos
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(4) input' CR15-4
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(5) input' 15
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(6) input' 45
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(7) input' 7.5
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(8) input' Centrifugal
+wait 700
+fill '[name="pump_line_ids"] tbody tr:first-child td:nth-child(9) input' Overhaul + Seal replace
+wait 700
+screenshot 02-pump-line-filled
+
+# --- Critical remarks ---
+click [name="remark_crane_work"] input
+fill '[name="critical_remarks_note"] textarea' Trace test — pump on elevated platform, crane required.
+
+screenshot 02-service-request-sr-pump-complete
+done

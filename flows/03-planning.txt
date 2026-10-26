@@ -1,0 +1,73 @@
+# Flow: Planning tab
+# Env: Odoo 17 @ http://localhost:8069 / DB: dev_hrp
+# Login: trace_test_user / TraceTest@2026
+#
+# Creates a new fsm.order, sets Assigned To (person_id) so the Request
+# Workers table auto-syncs, fills Requirements, adds one Schedule Sub-slot
+# row, sets Scheduled Start/End, and fills the Description.
+
+fill input#login trace_test_user
+fill input#password TraceTest@2026
+press Enter
+wait 6000
+
+goto http://localhost:8069/web#action=1168&model=fsm.order&view_type=list&cids=1
+wait 8000
+jclick button.o_list_button_add
+wait 4000
+
+# --- Header (needed before Planning tab shows worker sync) ---
+m2o [name="location_id"] บ้าน อ้าอ้า
+wait 1000
+m2o [name="person_id"] สมชาย
+wait 1000
+
+click text=Planning
+wait 1500
+screenshot 03-planning-tab-open
+
+# --- Requirements ---
+m2o [name="category_ids"] Plate
+wait 1000
+fill '[name="request_early"] input' 15/07/2026 08:00:00
+press Escape
+fill '[name="request_late"] input' 15/07/2026 17:00:00
+press Escape
+screenshot 03-requirements-filled
+
+# --- Request Workers table: auto-synced from Assigned To, just verify ---
+screenshot 03-request-workers-synced
+
+# --- Schedule Details (Sub-slot): standard editable list, add 1 row ---
+addline schedule_slot_ids
+wait 1000
+eval (function(){var s=document.querySelector('tr.o_selected_row td[name="slot_type"] select'); if(s){s.value='"travel_disassemble"'; s.dispatchEvent(new Event('change', {bubbles:true}));} return s ? s.value : 'NOT FOUND';})()
+wait 500
+fill 'tr.o_selected_row td[name="date_from"] input' 15/07/2026
+press Escape
+wait 500
+fill 'tr.o_selected_row td[name="date_to"] input' 15/07/2026
+press Escape
+wait 500
+fill 'tr.o_selected_row td[name="time_from"] input' 08:00
+press Escape
+wait 500
+fill 'tr.o_selected_row td[name="time_to"] input' 10:00
+press Escape
+wait 500
+fill 'tr.o_selected_row td[name="location"] input' Customer site — plate removal
+press Escape
+wait 500
+screenshot 03-schedule-slot-filled
+
+# --- Scheduled Start / End ---
+fill '[name="scheduled_date_start"] input' 15/07/2026 08:00:00
+press Escape
+fill '[name="scheduled_date_end"] input' 16/07/2026 17:00:00
+press Escape
+
+# --- Description ---
+fill '[name="description"] textarea' Trace test — full Planning tab flow: requirements, schedule sub-slot, scheduled start/end.
+
+screenshot 03-planning-complete
+done

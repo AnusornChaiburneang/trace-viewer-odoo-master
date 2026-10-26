@@ -1,0 +1,50 @@
+# Flow: Equipments tab
+# Env: Odoo 17 @ http://localhost:8069 / DB: dev_hrp
+# Login: trace_test_user / TraceTest@2026
+#
+# Creates a new fsm.order, opens the Equipments tab, adds one equipment
+# line and fills every editable column (equipment picker, qty withdrawn/
+# total, withdrawn/returned/return-deadline dates, notes).
+
+fill input#login trace_test_user
+fill input#password TraceTest@2026
+press Enter
+wait 6000
+
+goto http://localhost:8069/web#action=1168&model=fsm.order&view_type=list&cids=1
+wait 8000
+jclick button.o_list_button_add
+wait 4000
+
+m2o [name="location_id"] บ้าน อ้าอ้า
+wait 1000
+m2o [name="person_id"] สมชาย
+wait 1000
+
+click text=Equipments
+wait 1500
+screenshot 04-equipments-tab-open
+
+jclick [name="equipment_line_ids"] button.btn-link
+wait 1000
+
+# Equipment picker is a plain <select> populated via JS, not a real m2o.
+eval (function(){var s=document.querySelector('[name="equipment_line_ids"] tbody tr:first-child select'); if(s){s.value='1'; s.dispatchEvent(new Event('change', {bubbles:true}));} return s ? s.value : 'NOT FOUND';})()
+wait 700
+screenshot 04-equipment-picked
+
+fill '[name="equipment_line_ids"] tbody tr:first-child td:nth-child(5) input:nth-of-type(1)' 2
+wait 700
+fill '[name="equipment_line_ids"] tbody tr:first-child td:nth-child(5) input:nth-of-type(2)' 5
+wait 700
+fill '[name="equipment_line_ids"] tbody tr:first-child td:nth-child(6) input' 2026-07-15T09:00
+wait 700
+fill '[name="equipment_line_ids"] tbody tr:first-child td:nth-child(7) input' 2026-07-16T09:00
+wait 700
+fill '[name="equipment_line_ids"] tbody tr:first-child td:nth-child(8) input' 2026-07-20T00:00
+wait 700
+fill '[name="equipment_line_ids"] tbody tr:first-child td:nth-child(10) input' Trace test — equipment line, full round trip
+wait 700
+
+screenshot 04-equipments-complete
+done

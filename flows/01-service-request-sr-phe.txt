@@ -1,0 +1,105 @@
+# Flow: Service Request SR tab — PHE Technician profile
+# Env: Odoo 17 @ http://localhost:8069 / DB: dev_hrp
+# Login: trace_test_user / TraceTest@2026
+#
+# Creates a new fsm.order (defaults to PHE Technician), fills the header
+# (Location, Assigned To), fills every Service Request SR field, adds one
+# PHE equipment line and fills all of its columns.
+
+fill input#login trace_test_user
+fill input#password TraceTest@2026
+press Enter
+wait 6000
+
+goto http://localhost:8069/web#action=1168&model=fsm.order&view_type=list&cids=1
+wait 8000
+jclick button.o_list_button_add
+wait 4000
+screenshot 01-new-order
+
+# --- Header ---
+m2o [name="location_id"] บ้าน อ้าอ้า
+wait 1000
+m2o [name="person_id"] สมชาย
+wait 1000
+screenshot 01-header-filled
+
+# --- Service Request SR tab (already active by default) ---
+m2o [name="sale_id"] HP-2026
+wait 1000
+fill '[name="customer_po"] input' PO-TRACE-0001
+fill '[name="job_no"] input' JOB-TRACE-0001
+
+fill '[name="sr_planned_date"] input' 20/07/2026
+press Escape
+fill '[name="sr_completion_date"] input' 21/07/2026
+press Escape
+
+click [name="customer_type"] input[data-value="contractor"]
+click [name="sr_priority"] input[data-value="normal"]
+
+click [name="reason_external_leakage"] input
+click [name="reason_internal_leakage"] input
+click [name="reason_preventive_maintenance"] input
+click [name="reason_other"] input
+wait 500
+fill '[name="reason_other_note"] input' Trace test — custom reason note
+
+click [name="scope_dismantle_unit"] input
+click [name="scope_pickup_plate_pack"] input
+click [name="scope_service_report_required"] input
+click [name="scope_transport_to_workshop"] input
+click [name="scope_onsite_service"] input
+screenshot 01-sr-header-fields
+
+# --- Equipment Line - PHE Technician (custom table, add 1 row) ---
+# NOTE: each cell fill triggers an OWL re-render of the whole row, so a
+# short wait after every fill/click avoids racing a stale detached input.
+jclick [name="phe_line_ids"] button.btn-link
+wait 1000
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(2) input' PHE-TRACE-01
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(3) input' Alfa Laval
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(4) input' M6-FG
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(5) input' H/C
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(6) input' SS316
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(7) input' 32
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(8) input' NBR
+wait 700
+click [name="phe_line_ids"] tbody tr:first-child td:nth-child(9) input
+wait 700
+click [name="phe_line_ids"] tbody tr:first-child td:nth-child(10) input
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(11) input' 15
+wait 700
+click [name="phe_line_ids"] tbody tr:first-child td:nth-child(12) input:nth-of-type(1)
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(13) input' Warehouse
+wait 700
+fill '[name="phe_line_ids"] tbody tr:first-child td:nth-child(14) input' 6 barg / 30 min
+wait 700
+screenshot 01-phe-line-filled
+
+# --- Critical remarks ---
+click [name="remark_correction_work"] input
+click [name="remark_messenger_pickup"] input
+click [name="remark_glueless_work"] input
+click [name="remark_crane_work"] input
+click [name="remark_explosion_proof_area"] input
+click [name="remark_safety_training_required"] input
+fill '[name="critical_remarks_note"] textarea' Trace test — handle with care, customer on-site 24/7.
+
+# --- Spare Parts From ---
+click [name="plate_from"] input[data-value="wh"]
+fill '[name="plate_qty"] input' 4
+click [name="gasket_from_wh"] input
+click [name="gasket_from_cus"] input
+fill '[name="gasket_qty"] input' 2
+
+screenshot 01-service-request-sr-complete
+done

@@ -1,0 +1,7 @@
+node_modules/
+traces/*
+!traces/.gitkeep
+*.zip
+*.png
+config.json
+.env
